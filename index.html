@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mrs Falempin's Crash Course in Current Affairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,480;0,9..144,560;1,9..144,480&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase (compat SDK — simplest drop-in for this app's Firestore-style calls) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+<style>
+  :root {
+    --paper: #F3F4F2;
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --ink: #171B1E;
+    --ink-soft: #545C62;
+    --ink-faint: #8A9297;
+    --line: #DEE2E0;
+    --line-soft: #E9ECEA;
+    --accent: #234A5F;
+    --accent-strong: #15303F;
+    --accent-tint: #E4ECEF;
+    --sage: #3E6F5C;
+    --sage-tint: #E4EEE9;
+    --danger: #92352B;
+    --danger-tint: #F4E5E2;
+    --focus: #2B6CB0;
+    --radius-s: 6px;
+    --radius-m: 10px;
+    --shadow-card: 0 1px 2px rgba(23,27,30,0.06), 0 1px 1px rgba(23,27,30,0.04);
+    color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --paper: #14171A;
+    --surface: #1B1F23;
+    --surface-raised: #21262B;
+    --ink: #ECEEEF;
+    --ink-soft: #AFB6BB;
+    --ink-faint: #767F85;
+    --line: #2C3237;
+    --line-soft: #262B2F;
+    --accent: #6E9BB0;
+    --accent-strong: #8CB4C6;
+    --accent-tint: #1E2C33;
+    --sage: #7CAF9A;
+    --sage-tint: #1C2A24;
+    --danger: #C77468;
+    --danger-tint: #2E1E1C;
+    --focus: #6E9BB0;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14171A;
+      --surface: #1B1F23;
+      --surface-raised: #21262B;
+      --ink: #ECEEEF;
+      --ink-soft: #AFB6BB;
+      --ink-faint: #767F85;
+      --line: #2C3237;
+      --line-soft: #262B2F;
+      --accent: #6E9BB0;
+      --accent-strong: #8CB4C6;
+      --accent-tint: #1E2C33;
+      --sage: #7CAF9A;
+      --sage-tint: #1C2A24;
+      --danger: #C77468;
+      --danger-tint: #2E1E1C;
+      --focus: #6E9BB0;
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  html {
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .serif { font-family: "Fraunces", Georgia, "Times New Roman", serif; font-optical-sizing: auto; }
+  a { color: inherit; }
+  button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: var(--accent-tint); }
+
+  *:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---------- Layout shells ---------- */
+  #app { min-height: 100%; }
+
+  .center-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+
+  /* ---------- Login ---------- */
+  .login-card {
+    width: 100%;
+    max-width: 400px;
+  }
+  .brand {
+    text-align: left;
+    margin-bottom: 28px;
+  }
+  .brand-title {
+    font-size: 30px;
+    font-weight: 480;
+    line-height: 1.18;
+    margin: 0 0 10px;
+  }
+
+  .brand-sub {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .role-toggle {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 3px;
+    background: var(--surface);
+    margin-bottom: 20px;
+  }
+  .role-toggle button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 9px 12px;
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .role-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .text-input {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius-s);
+    padding: 11px 13px;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .text-input:focus { border-color: var(--focus); }
+  .text-input::placeholder { color: var(--ink-faint); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-s);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: opacity 0.15s ease;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { opacity: 0.78; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--line); }
+  .btn-quiet { background: transparent; color: var(--ink-soft); border-color: transparent; padding: 8px 10px; }
+  .btn-quiet:hover { color: var(--ink); background: var(--line-soft); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger-tint); }
+  .btn-danger:hover { background: var(--danger-tint); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 7px 11px; font-size: 13px; }
+
+  .login-form { margin-top: 18px; }
+  .login-error {
+    display: none;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--danger);
+    background: var(--danger-tint);
+    border-radius: var(--radius-s);
+    padding: 9px 11px;
+  }
+  .login-error.show { display: block; }
+
+  .login-foot {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- App header ---------- */
+  .app-header {
+    position: sticky;
+    top: 0;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .app-header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .app-wordmark { display: flex; flex-direction: column; min-width: 0; }
+  .app-wordmark .name {
+    font-size: 18px;
+    font-weight: 480;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-wordmark .role-tag {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 1px;
+  }
+  .app-header-actions { display: flex; align-items: center; gap: 8px; }
+
+  /* ---------- Student area ---------- */
+  .student-main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+  .month-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+  .month-picker .field-label { margin: 0; white-space: nowrap; }
+  .month-select {
+    max-width: 240px;
+    padding: 9px 34px 9px 13px;
+    border-radius: 999px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%238A9297" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .empty-state {
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-m);
+    padding: 40px 24px;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+  .empty-state h3 { margin: 0 0 6px; font-size: 19px; font-weight: 500; }
+  .empty-state p { margin: 0; font-size: 13.5px; }
+
+  .post-list { display: flex; flex-direction: column; gap: 18px; }
+  .timeline-group + .timeline-group { margin-top: 28px; }
+  .timeline-day-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .post-cover {
+    margin: -22px -24px 16px;
+    border-radius: var(--radius-m) var(--radius-m) 0 0;
+    overflow: hidden;
+    background: var(--line-soft);
+  }
+  .post-cover img {
+    display: block;
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+  }
+  .type-badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .post-headline {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.28;
+    margin: 0 0 8px;
+  }
+  .post-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin: 0 0 12px;
+  }
+  .post-source-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-faint);
+    font-size: 12.5px;
+    margin-bottom: 14px;
+  }
+  .post-source-row .post-domain { color: var(--ink-soft); font-weight: 500; }
+  .post-source-row .dot { opacity: 0.6; }
+  .post-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .admin-note {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--sage-tint);
+    border-left: 2px solid var(--sage);
+    border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  }
+  .admin-note .note-label {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--sage);
+    margin-bottom: 5px;
+  }
+  .admin-note p { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.55; }
+
+  /* ---------- Admin shell ---------- */
+  .admin-shell {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 28px;
+  }
+  .admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .admin-nav button {
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-s);
+    padding: 9px 12px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .admin-nav button[aria-pressed="true"] {
+    background: var(--accent-tint);
+    color: var(--accent-strong);
+  }
+  .admin-nav button:hover:not([aria-pressed="true"]) { background: var(--line-soft); color: var(--ink); }
+
+  .admin-panel { min-width: 0; }
+  .panel-heading { margin: 0 0 4px; font-size: 24px; font-weight: 500; }
+  .panel-sub { margin: 0 0 22px; color: var(--ink-soft); font-size: 13.5px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-card);
+  }
+  .card + .card { margin-top: 16px; }
+
+  .month-field-row { display: flex; gap: 10px; align-items: center; }
+  .month-field-row select { flex: 1; }
+  .new-month-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .new-month-form .text-input { flex: 1; min-width: 140px; }
+  .confirm-row {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--danger-tint);
+    border-radius: var(--radius-s);
+  }
+  .confirm-text { margin: 0 0 10px; font-size: 13.5px; color: var(--ink); }
+
+  .source-toggle {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--paper);
+    margin-bottom: 10px;
+  }
+  .source-btn {
+    border: none;
+    background: transparent;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .source-btn[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .file-attached {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--sage);
+    font-weight: 500;
+  }
+  .file-attached button {
+    border: none;
+    background: transparent;
+    color: var(--danger);
+    font-size: 12px;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .form-grid { display: grid; gap: 14px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  textarea.text-input { resize: vertical; min-height: 64px; }
+
+  .month-group + .month-group { margin-top: 26px; }
+  .month-group-label {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: "Fraunces", serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .month-group-count { font-family: "Archivo", sans-serif; font-size: 12.5px; font-weight: 400; color: var(--ink-faint); }
+  .admin-post-row {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 18px 20px;
+    background: var(--surface);
+  }
+  .admin-post-row + .admin-post-row { margin-top: 12px; }
+  .admin-post-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .admin-post-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-s);
+    border: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .admin-post-headline { font-size: 17px; font-weight: 500; margin: 0 0 4px; }
+  .admin-post-meta { font-size: 12.5px; color: var(--ink-faint); }
+  .admin-comment-block { margin-top: 14px; }
+  .admin-comment-block .field-label { margin-bottom: 5px; }
+  .comment-save-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+  .code-display {
+    font-family: "Fraunces", serif;
+    font-size: 40px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin: 2px 0 4px;
+  }
+  .code-updated { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 18px; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 16px 18px;
+  }
+  .stat-value { font-size: 30px; font-weight: 500; font-family: "Fraunces", serif; }
+  .stat-label { font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  .bar-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+  .bar-row:last-child { border-bottom: none; }
+  .bar-title { font-size: 13.5px; }
+  .bar-track { height: 6px; background: var(--line-soft); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+  .bar-count { font-size: 13px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; }
+  .current-tag {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--sage);
+    background: var(--sage-tint);
+    border-radius: 999px;
+    padding: 2px 7px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .year-card { margin-bottom: 12px; }
+  .year-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .year-card-label { font-family: "Fraunces", serif; font-size: 18px; font-weight: 500; }
+  .year-card-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+  .year-card-meta { font-size: 12.5px; color: var(--ink-faint); margin-top: 3px; }
+  .year-card-body { margin-top: 16px; border-top: 1px solid var(--line-soft); padding-top: 14px; }
+  .archive-month + .archive-month { margin-top: 10px; }
+  .archive-month-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-s);
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .archive-month-toggle:hover { border-color: var(--accent); }
+  .archive-month-count { font-size: 12px; font-weight: 400; color: var(--ink-faint); }
+  .archive-post-list { padding: 10px 4px 4px 14px; }
+  .archive-post-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line-soft);
+    flex-wrap: wrap;
+  }
+  .archive-post-row:last-child { border-bottom: none; }
+  .archive-post-row .type-badge { margin-bottom: 0; flex: 0 0 auto; }
+  .archive-post-link {
+    font-size: 13.5px;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    flex: 1;
+    min-width: 120px;
+  }
+  .archive-post-date { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+
+  .toast {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--accent-strong);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 500;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  @media (max-width: 720px) {
+    .admin-shell { grid-template-columns: 1fr; }
+    .admin-nav { flex-direction: row; overflow-x: auto; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+    .form-row-2 { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr; }
+    .post-headline { font-size: 20px; }
+    .brand-title { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="center-shell">
+    <p style="color: var(--ink-faint); font-size: 13px;">Loading Mrs Falempin's Crash Course…</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------- constants ---------------- */
+  var ADMIN_CODE = "Benflic4ever!";
+  var DEFAULT_STUDENT_CODE = "123456";
+  var TYPE_LABELS = { link: "Link", pdf: "PDF", article: "Article" };
+
+  /* ---------------- Firebase config ----------------
+     Fill this in with YOUR Firebase project's values (Project settings ->
+     General -> "Your apps" -> Web app -> SDK setup and configuration).
+     See README.md for the full setup walkthrough. */
+  var firebaseConfig = {
+    apiKey: "AIzaSyAGd7txn7WGwT0lmzDt9B-HWvKLnf2Dcdo",
+    authDomain: "crash-course-current-affairs.firebaseapp.com",
+    projectId: "crash-course-current-affairs",
+    storageBucket: "crash-course-current-affairs.firebasestorage.app",
+    messagingSenderId: "249258881508",
+    appId: "1:249258881508:web:4c5afecf46f58cd4c5d7f1"
+  };
+
+  /* Wraps Firebase Storage to match the {id, url} shape the rest of this
+     app already expects from an upload. */
+  function makeAssetsAdapter(storage) {
+    return {
+      upload: async function (file, options) {
+        var forcedType = options && options.type;
+        var safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, "_");
+        var path = "uploads/" + Date.now() + "_" + Math.random().toString(36).slice(2) + "_" + safeName;
+        var ref = storage.ref().child(path);
+        var metadata = forcedType ? { contentType: forcedType } : undefined;
+        await ref.put(file, metadata);
+        var url = await ref.getDownloadURL();
+        return { id: path, url: url };
+      }
+    };
+  }
+
+  /* ---------------- state ---------------- */
+  var state = {
+    db: null,
+    assets: null,
+    setupNeeded: false,
+    role: null,            // 'student' | 'admin' | null
+    loginRoleChoice: "student",
+    studentCode: DEFAULT_STUDENT_CODE,
+    codeUpdatedAt: null,
+    posts: [],
+    postsLoaded: false,
+    months: [],
+    monthsLoaded: false,
+    years: [],
+    yearsLoaded: false,
+    expandedYearId: null,
+    expandedMonthId: null,
+    selectedMonth: null,
+    pendingMonthSelectId: null,
+    adminTab: "posts",
+    analytics: null,       // computed on demand
+    analyticsLoading: false,
+    yearWipeLoading: false
+  };
+
+  var app = document.getElementById("app");
+  var toastEl = document.getElementById("toast");
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    window.clearTimeout(showToast._t);
+    showToast._t = window.setTimeout(function () {
+      toastEl.classList.remove("show");
+    }, 2200);
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------------- session persistence (per-viewer convenience only) ---------------- */
+  function saveSession(role) {
+    try { window.localStorage.setItem("ccx_role", role || ""); } catch (e) {}
+  }
+  function loadSession() {
+    try { return window.localStorage.getItem("ccx_role") || null; } catch (e) { return null; }
+  }
+  function clearSession() {
+    try { window.localStorage.removeItem("ccx_role"); } catch (e) {}
+  }
+
+  function formatDateTime(ts) {
+    if (!ts) return "—";
+    var d = new Date(ts);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " · " +
+      d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  }
+  function extractDomain(url) {
+    try {
+      var host = new URL(url).hostname.replace(/^www\./, "");
+      return host;
+    } catch (e) {
+      return "";
+    }
+  }
+  var LINK_ICON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+  function dayKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+  function dayLabel(ts) {
+    var d = new Date(ts);
+    var today = new Date();
+    var yest = new Date(); yest.setDate(today.getDate() - 1);
+    if (dayKey(ts) === dayKey(today.getTime())) return "Today";
+    if (dayKey(ts) === dayKey(yest.getTime())) return "Yesterday";
+    return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  }
+  function monthKey(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" + (d.getMonth() + 1);
+  }
+  function monthLabel(ts) {
+    var d = new Date(ts);
+    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  }
+  function computeYearLabel(ts) {
+    var d = new Date(ts);
+    var y = d.getFullYear();
+    var m = d.getMonth(); // 0-11, school year assumed Aug(7)-Jul(6)
+    return m >= 7 ? (y + "\u2013" + (y + 1)) : ((y - 1) + "\u2013" + y);
+  }
+  function nextYearLabel(prevLabel) {
+    if (prevLabel) {
+      var m = prevLabel.match(/(\d{4})/);
+      if (m) {
+        var y = parseInt(m[1], 10) + 1;
+        return y + "\u2013" + (y + 1);
+      }
+    }
+    var d = new Date();
+    return computeYearLabel(new Date(d.getFullYear() + 1, d.getMonth(), d.getDate()).getTime());
+  }
+  function firstMonthLabelForYear(yearLabel) {
+    var m = yearLabel.match(/(\d{4})/);
+    var year = m ? m[1] : new Date().getFullYear();
+    return "September " + year;
+  }
+  function getActiveYear() {
+    var active = state.years.filter(function (y) { return !y.archivedAt; });
+    if (!active.length) return null;
+    active.sort(function (a, b) { return b.createdAt - a.createdAt; });
+    return active[0];
+  }
+  function getCurrentMonths() {
+    var active = getActiveYear();
+    return state.months.filter(function (m) {
+      return (active && m.yearId === active.id) || !m.yearId;
+    });
+  }
+  function getCurrentPosts() {
+    var ids = {};
+    getCurrentMonths().forEach(function (m) { ids[m.id] = true; });
+    return state.posts.filter(function (p) { return ids[p.monthId]; });
+  }
+
+  /* ---------------- db bootstrap ---------------- */
+  async function initDb() {
+    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+      state.setupNeeded = true;
+      render();
+      return;
+    }
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      state.db = firebase.firestore();
+      state.assets = makeAssetsAdapter(firebase.storage());
+    } catch (e) {
+      state.db = null;
+      state.assets = null;
+    }
+    if (!state.db) {
+      render();
+      return;
+    }
+    // load codes config
+    try {
+      var snap = await state.db.doc("config/codes").get();
+      if (snap.exists) {
+        var data = snap.data();
+        if (data.studentCode) state.studentCode = data.studentCode;
+        if (data.updatedAt) state.codeUpdatedAt = data.updatedAt;
+      }
+    } catch (e) { /* fall back to default */ }
+
+    // live subscribe to codes so admin view stays fresh
+    try {
+      state.db.doc("config/codes").onSnapshot(function (snap) {
+        if (snap.exists) {
+          var d = snap.data();
+          if (d.studentCode) state.studentCode = d.studentCode;
+          if (d.updatedAt) state.codeUpdatedAt = d.updatedAt;
+          if (state.role) render();
+        }
+      });
+    } catch (e) {}
+
+    // live subscribe to years
+    try {
+      state.db.collection("years").orderBy("createdAt", "asc").limit(100)
+        .onSnapshot(function (qsnap) {
+          var list = [];
+          qsnap.docs.forEach(function (d) {
+            var data = d.data();
+            list.push({ id: d.id, label: data.label || "Untitled year", createdAt: data.createdAt || 0, archivedAt: data.archivedAt || null });
+          });
+          state.years = list;
+          state.yearsLoaded = true;
+          if (state.role) render();
+        }, function (err) {
+          state.yearsLoaded = true;
+          if (state.role) render();
+        });
+    } catch (e) {
+      state.yearsLoaded = true;
+    }
+
+    // live subscribe to months
+    try {
+      state.db.collection("months").orderBy("createdAt", "asc").limit(200)
+        .onSnapshot(function (qsnap) {
+          var list = [];
+          qsnap.docs.forEach(function (d) {
+            var data = d.data();
+            list.push({ id: d.id, label: data.label || "Untitled month", yearId: data.yearId || "", createdAt: data.createdAt || 0 });
+          });
+          state.months = list;
+          state.monthsLoaded = true;
+          if (state.role) render();
+        }, function (err) {
+          state.monthsLoaded = true;
+          if (state.role) render();
+        });
+    } catch (e) {
+      state.monthsLoaded = true;
+    }
+
+    // live subscribe to posts
+    try {
+      state.db.collection("posts").orderBy("createdAt", "desc").limit(300)
+        .onSnapshot(function (qsnap) {
+          var list = [];
+          qsnap.docs.forEach(function (d) {
+            var data = d.data();
+            list.push({
+              id: d.id,
+              headline: data.headline || "",
+              type: data.type || "link",
+              url: data.url || "",
+              fileName: data.fileName || "",
+              coverImageUrl: data.coverImageUrl || "",
+              description: data.description || "",
+              comment: data.comment || "",
+              monthId: data.monthId || "",
+              createdAt: data.createdAt || 0
+            });
+          });
+          state.posts = list;
+          state.postsLoaded = true;
+          if (state.role) render();
+        }, function (err) {
+          state.postsLoaded = true;
+          if (state.role) render();
+        });
+    } catch (e) {
+      state.postsLoaded = true;
+    }
+
+    // resume session
+    var savedRole = loadSession();
+    if (savedRole === "student" || savedRole === "admin") {
+      state.role = savedRole;
+    }
+    render();
+  }
+
+  /* ---------------- login ---------------- */
+  async function attemptLogin(code) {
+    var role = state.loginRoleChoice;
+    var ok = false;
+    if (role === "admin") {
+      ok = code === ADMIN_CODE;
+    } else {
+      ok = code === state.studentCode;
+    }
+    if (!ok) return false;
+
+    state.role = role;
+    saveSession(role);
+
+    if (state.db) {
+      try {
+        await state.db.collection("loginEvents").add({ role: role, ts: Date.now() });
+      } catch (e) {}
+    }
+    state.selectedMonth = null;
+    render();
+    return true;
+  }
+
+  function logout() {
+    state.role = null;
+    clearSession();
+    render();
+  }
+
+  /* ---------------- post actions ---------------- */
+  async function addPost(fields) {
+    if (!state.db) { showToast("Storage isn't available right now."); return; }
+    try {
+      await state.db.collection("posts").add({
+        headline: fields.headline,
+        type: fields.type,
+        url: fields.url,
+        fileName: fields.fileName || "",
+        coverImageUrl: fields.coverImageUrl || "",
+        description: fields.description || "",
+        comment: fields.comment || "",
+        monthId: fields.monthId || "",
+        createdAt: Date.now()
+      });
+      showToast("Post published.");
+    } catch (e) {
+      showToast("Couldn't publish that post. Try again.");
+    }
+  }
+
+  async function ensureActiveYear() {
+    var active = getActiveYear();
+    if (active) return active.id;
+    try {
+      var ref = await state.db.collection("years").add({ label: computeYearLabel(Date.now()), createdAt: Date.now(), archivedAt: null });
+      return ref.id;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function createMonth(label) {
+    if (!state.db) { showToast("Storage isn't available right now."); return null; }
+    try {
+      var yearId = await ensureActiveYear();
+      var ref = await state.db.collection("months").add({ label: label, yearId: yearId || "", createdAt: Date.now() });
+      showToast("Month added.");
+      return ref.id;
+    } catch (e) {
+      showToast("Couldn't create that month. Try again.");
+      return null;
+    }
+  }
+
+  async function startNewSchoolYear(newLabel) {
+    if (!state.db) { showToast("Storage isn't available right now."); return; }
+    state.yearWipeLoading = true;
+    render();
+    try {
+      var active = getActiveYear();
+      if (active) {
+        var orphanMonths = state.months.filter(function (m) { return !m.yearId; });
+        var stampJobs = orphanMonths.map(function (m) {
+          return state.db.doc("months/" + m.id).update({ yearId: active.id });
+        });
+        if (stampJobs.length) await Promise.all(stampJobs);
+        await state.db.doc("years/" + active.id).update({ archivedAt: Date.now() });
+      }
+      var label = (newLabel && newLabel.trim()) || nextYearLabel(active ? active.label : null);
+      var yearRef = await state.db.collection("years").add({ label: label, createdAt: Date.now(), archivedAt: null });
+      await state.db.collection("months").add({ label: firstMonthLabelForYear(label), yearId: yearRef.id, createdAt: Date.now() });
+      state.selectedMonth = null;
+      showToast("Started " + label + " with its first month ready. Last year is saved in the archive.");
+    } catch (e) {
+      showToast("Couldn't start the new year. Try again.");
+    }
+    state.yearWipeLoading = false;
+    render();
+  }
+
+  async function restoreYear(yearId) {
+    if (!state.db) { showToast("Storage isn't available right now."); return; }
+    try {
+      var currentActive = getActiveYear();
+      if (currentActive && currentActive.id !== yearId) {
+        await state.db.doc("years/" + currentActive.id).update({ archivedAt: Date.now() });
+      }
+      await state.db.doc("years/" + yearId).update({ archivedAt: null });
+      state.selectedMonth = null;
+      showToast("Restored to current.");
+    } catch (e) {
+      showToast("Couldn't restore that year. Try again.");
+    }
+    render();
+  }
+
+  async function saveComment(postId, comment) {
+    if (!state.db) return;
+    try {
+      await state.db.doc("posts/" + postId).update({ comment: comment });
+      showToast("Note saved.");
+    } catch (e) {
+      showToast("Couldn't save the note. Try again.");
+    }
+  }
+
+  async function deletePost(postId) {
+    if (!state.db) return;
+    try {
+      await state.db.doc("posts/" + postId).delete();
+      showToast("Post removed.");
+    } catch (e) {
+      showToast("Couldn't remove that post.");
+    }
+  }
+
+  async function logClick(post) {
+    if (!state.db) return;
+    try {
+      state.db.collection("clickEvents").add({
+        postId: post.id,
+        headline: post.headline,
+        ts: Date.now()
+      });
+    } catch (e) {}
+  }
+
+  async function saveStudentCode(newCode) {
+    if (!state.db) { showToast("Storage isn't available right now."); return; }
+    var trimmed = (newCode || "").trim();
+    if (!trimmed) { showToast("Enter a code first."); return; }
+    try {
+      await state.db.doc("config/codes").set({ studentCode: trimmed, updatedAt: Date.now() });
+      state.studentCode = trimmed;
+      state.codeUpdatedAt = Date.now();
+      showToast("This week's student code is set.");
+      render();
+    } catch (e) {
+      showToast("Couldn't save the code. Try again.");
+    }
+  }
+
+  /* ---------------- analytics ---------------- */
+  async function loadAnalytics() {
+    if (!state.db) return;
+    state.analyticsLoading = true;
+    render();
+    var logins = { student: 0, admin: 0, total: 0 };
+    var clicksByPost = {};
+    var loginTimestamps = [];
+    var clickTimestamps = [];
+    try {
+      var loginSnap = await state.db.collection("loginEvents").limit(1000).get();
+      loginSnap.docs.forEach(function (d) {
+        var data = d.data();
+        logins.total++;
+        if (data.role === "admin") logins.admin++;
+        else logins.student++;
+        loginTimestamps.push(data.ts || 0);
+      });
+    } catch (e) {}
+    try {
+      var clickSnap = await state.db.collection("clickEvents").limit(1000).get();
+      clickSnap.docs.forEach(function (d) {
+        var data = d.data();
+        var key = data.postId || "unknown";
+        if (!clicksByPost[key]) clicksByPost[key] = { headline: data.headline || "Untitled post", count: 0 };
+        clicksByPost[key].count++;
+        clickTimestamps.push(data.ts || 0);
+      });
+    } catch (e) {}
+
+    var ranked = Object.keys(clicksByPost).map(function (k) {
+      return clicksByPost[k];
+    }).sort(function (a, b) { return b.count - a.count; });
+
+    var sortedYears = state.years.slice().sort(function (a, b) { return a.createdAt - b.createdAt; });
+    function yearForTs(ts) {
+      for (var i = 0; i < sortedYears.length; i++) {
+        var y = sortedYears[i];
+        var end = y.archivedAt || Infinity;
+        if (ts >= y.createdAt && ts < end) return y;
+      }
+      return null;
+    }
+    var perYear = {};
+    sortedYears.forEach(function (y) { perYear[y.id] = { label: y.label, archived: !!y.archivedAt, logins: 0, clicks: 0 }; });
+    loginTimestamps.forEach(function (ts) { var y = yearForTs(ts); if (y) perYear[y.id].logins++; });
+    clickTimestamps.forEach(function (ts) { var y = yearForTs(ts); if (y) perYear[y.id].clicks++; });
+    var yearRows = sortedYears.slice().reverse().map(function (y) { return perYear[y.id]; });
+
+    state.analytics = { logins: logins, clicks: ranked, years: yearRows };
+    state.analyticsLoading = false;
+    render();
+  }
+
+  /* ---------------- render: root ---------------- */
+  function render() {
+    if (state.setupNeeded) {
+      app.innerHTML = renderSetupNeeded();
+      return;
+    }
+    if (!state.role) {
+      app.innerHTML = renderLogin();
+      bindLogin();
+      return;
+    }
+    if (state.role === "admin") {
+      app.innerHTML = renderAdminShell();
+      bindAdminShell();
+      return;
+    }
+    app.innerHTML = renderStudentShell();
+    bindStudentShell();
+  }
+
+  function renderSetupNeeded() {
+    return '' +
+    '<div class="center-shell">' +
+      '<div class="login-card">' +
+        '<div class="brand">' +
+          '<h1 class="brand-title">One more step</h1>' +
+          '<p class="brand-sub">This site needs your Firebase project\u2019s details before it can save anything.</p>' +
+        '</div>' +
+        '<div class="card" style="text-align:left;">' +
+          '<p style="margin:0 0 10px; font-size:13.5px; color: var(--ink-soft);">Open <code>index.html</code>, find the <code>firebaseConfig</code> object near the top of the script, and replace the placeholder values with your own project\u2019s config.</p>' +
+          '<p style="margin:0; font-size:13.5px; color: var(--ink-soft);">Full steps are in <code>README.md</code> in this download.</p>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ---------------- render: login ---------------- */
+  function renderLogin() {
+    var isAdmin = state.loginRoleChoice === "admin";
+    return '' +
+    '<div class="center-shell">' +
+      '<div class="login-card">' +
+        '<div class="brand">' +
+          '<h1 class="brand-title">Mrs Falempin\u2019s Crash Course in Current Affairs</h1>' +
+          '<p class="brand-sub">Enter this week\u2019s access code to get in.</p>' +
+        '</div>' +
+        '<div class="role-toggle" role="group" aria-label="Choose account type">' +
+          '<button type="button" id="roleStudentBtn" aria-pressed="' + (!isAdmin) + '">Student</button>' +
+          '<button type="button" id="roleAdminBtn" aria-pressed="' + isAdmin + '">Admin</button>' +
+        '</div>' +
+        '<form class="login-form" id="loginForm">' +
+          '<label class="field-label" for="codeInput">' + (isAdmin ? "Admin code" : "Student access code") + '</label>' +
+          '<input class="text-input" id="codeInput" type="password" autocomplete="off" placeholder="' + (isAdmin ? "Enter admin code" : "Enter this week\u2019s code") + '" />' +
+          '<div class="login-error" id="loginError">That code isn\u2019t right for this week. Double check with your teacher.</div>' +
+          '<button type="submit" class="btn btn-primary btn-block" style="margin-top:14px;">Continue</button>' +
+        '</form>' +
+        '<div class="login-foot">Codes reset weekly by the admin. Students: ask your teacher if last week\u2019s code stopped working.</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function bindLogin() {
+    var studentBtn = document.getElementById("roleStudentBtn");
+    var adminBtn = document.getElementById("roleAdminBtn");
+    var form = document.getElementById("loginForm");
+    var input = document.getElementById("codeInput");
+    var errorEl = document.getElementById("loginError");
+
+    studentBtn.addEventListener("click", function () {
+      state.loginRoleChoice = "student";
+      render();
+    });
+    adminBtn.addEventListener("click", function () {
+      state.loginRoleChoice = "admin";
+      render();
+    });
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      errorEl.classList.remove("show");
+      var code = input.value.trim();
+      if (!code) return;
+      var ok = await attemptLogin(code);
+      if (!ok) {
+        errorEl.classList.add("show");
+      }
+    });
+    input.focus();
+  }
+
+  /* ---------------- render: student ---------------- */
+  function renderStudentShell() {
+    var currentMonths = getCurrentMonths();
+    var currentPosts = getCurrentPosts();
+    var months = currentMonths.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+    var selected = state.selectedMonth === null ? "recent" : state.selectedMonth;
+
+    var optionsHtml = '<option value="recent"' + (selected === "recent" ? " selected" : "") + '>Recently added</option>' +
+      months.map(function (m) {
+        return '<option value="' + m.id + '"' + (selected === m.id ? " selected" : "") + '>' + escapeHtml(m.label) + '</option>';
+      }).join("");
+
+    var postsHtml;
+    if (!state.postsLoaded || !state.monthsLoaded) {
+      postsHtml = '<div class="empty-state"><h3>Loading the briefing\u2026</h3></div>';
+    } else if (!currentPosts.length) {
+      postsHtml = '<div class="empty-state"><h3>Nothing posted yet</h3><p>Your admin hasn\u2019t added this month\u2019s briefing. Check back soon.</p></div>';
+    } else if (selected === "recent") {
+      var timeline = currentPosts.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+      postsHtml = renderTimeline(timeline);
+    } else {
+      var visiblePosts = currentPosts.filter(function (p) { return p.monthId === selected; });
+      visiblePosts.sort(function (a, b) { return a.createdAt - b.createdAt; });
+      postsHtml = visiblePosts.length ?
+        '<div class="post-list">' + visiblePosts.map(renderPostCard).join("") + '</div>' :
+        '<div class="empty-state"><h3>No posts for this month yet</h3></div>';
+    }
+
+    return '' +
+    '<header class="app-header">' +
+      '<div class="app-header-inner">' +
+        '<div class="app-wordmark"><span class="name serif">Crash Course in Current Affairs</span><span class="role-tag">Mrs Falempin \u00b7 Student briefing' + (getActiveYear() ? ' \u00b7 ' + escapeHtml(getActiveYear().label) : '') + '</span></div>' +
+        '<div class="app-header-actions"><button class="btn btn-quiet" id="logoutBtn">Log out</button></div>' +
+      '</div>' +
+    '</header>' +
+    '<main class="student-main">' +
+      (months.length ?
+        '<div class="month-picker">' +
+          '<label class="field-label" for="monthSelect">Jump to</label>' +
+          '<select class="text-input month-select" id="monthSelect">' + optionsHtml + '</select>' +
+        '</div>'
+      : '') +
+      postsHtml +
+    '</main>';
+  }
+
+  function renderTimeline(posts) {
+    if (!posts.length) return '<div class="empty-state"><h3>Nothing posted yet</h3></div>';
+    var groups = [];
+    var lastKey = null;
+    posts.forEach(function (p) {
+      var k = dayKey(p.createdAt);
+      if (k !== lastKey) {
+        groups.push({ key: k, label: dayLabel(p.createdAt), items: [] });
+        lastKey = k;
+      }
+      groups[groups.length - 1].items.push(p);
+    });
+    return groups.map(function (g) {
+      return '' +
+      '<div class="timeline-group">' +
+        '<div class="timeline-day-label">' + g.label + '</div>' +
+        '<div class="post-list">' + g.items.map(renderPostCard).join("") + '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+
+  function renderPostCard(post) {
+    var badge = TYPE_LABELS[post.type] || "Link";
+    var noteHtml = post.comment ? (
+      '<div class="admin-note"><div class="note-label">Note from your admin</div><p>' + escapeHtml(post.comment) + '</p></div>'
+    ) : "";
+    var coverHtml = post.coverImageUrl ? (
+      '<div class="post-cover"><img src="' + escapeHtml(post.coverImageUrl) + '" alt="" loading="lazy" /></div>'
+    ) : "";
+    var descHtml = post.description ? ('<p class="post-desc">' + escapeHtml(post.description) + '</p>') : "";
+    var domain = extractDomain(post.url);
+    var sourceHtml = '' +
+      '<div class="post-source-row">' +
+        LINK_ICON +
+        (domain ? '<span class="post-domain">' + escapeHtml(domain) + '</span><span class="dot">\u00b7</span>' : '') +
+        '<span>' + formatDateTime(post.createdAt) + '</span>' +
+        (post.fileName ? '<span class="dot">\u00b7</span><span>' + escapeHtml(post.fileName) + '</span>' : '') +
+      '</div>';
+    return '' +
+    '<article class="post-card">' +
+      coverHtml +
+      '<span class="type-badge">' + badge + '</span>' +
+      '<h2 class="post-headline serif">' + escapeHtml(post.headline) + '</h2>' +
+      descHtml +
+      sourceHtml +
+      '<div class="post-actions">' +
+        '<a class="btn btn-secondary post-open-link" href="' + escapeHtml(post.url || "#") + '" target="_blank" rel="noopener noreferrer" data-post-id="' + post.id + '">Open ' + badge.toLowerCase() + '</a>' +
+      '</div>' +
+      noteHtml +
+    '</article>';
+  }
+
+  function bindStudentShell() {
+    var logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
+    var monthSelect = document.getElementById("monthSelect");
+    if (monthSelect) {
+      monthSelect.addEventListener("change", function () {
+        state.selectedMonth = monthSelect.value;
+        render();
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".post-open-link"), function (a) {
+      a.addEventListener("click", function () {
+        var id = a.getAttribute("data-post-id");
+        var post = state.posts.filter(function (p) { return p.id === id; })[0];
+        if (post) logClick(post);
+      });
+    });
+  }
+
+  /* ---------------- render: admin ---------------- */
+  function renderAdminShell() {
+    var navItems = [
+      { id: "posts", label: "Posts" },
+      { id: "code", label: "Weekly code" },
+      { id: "schoolyear", label: "School year" },
+      { id: "analytics", label: "Analytics" }
+    ];
+    var navHtml = navItems.map(function (item) {
+      return '<button type="button" class="admin-nav-btn" data-tab="' + item.id + '" aria-pressed="' + (state.adminTab === item.id) + '">' + item.label + '</button>';
+    }).join("");
+
+    var panelHtml;
+    if (state.adminTab === "code") panelHtml = renderCodePanel();
+    else if (state.adminTab === "analytics") panelHtml = renderAnalyticsPanel();
+    else if (state.adminTab === "schoolyear") panelHtml = renderSchoolYearPanel();
+    else panelHtml = renderPostsPanel();
+
+    return '' +
+    '<header class="app-header">' +
+      '<div class="app-header-inner">' +
+        '<div class="app-wordmark"><span class="name serif">Crash Course in Current Affairs</span><span class="role-tag">Mrs Falempin \u00b7 Admin' + (getActiveYear() ? ' \u00b7 ' + escapeHtml(getActiveYear().label) : '') + '</span></div>' +
+        '<div class="app-header-actions"><button class="btn btn-quiet" id="logoutBtn">Log out</button></div>' +
+      '</div>' +
+    '</header>' +
+    '<div class="admin-shell">' +
+      '<nav class="admin-nav" aria-label="Admin sections">' + navHtml + '</nav>' +
+      '<section class="admin-panel">' + panelHtml + '</section>' +
+    '</div>';
+  }
+
+  function renderPostsPanel() {
+    var activeYear = getActiveYear();
+    var currentMonths = getCurrentMonths();
+    var currentPosts = getCurrentPosts();
+    var monthsAsc = currentMonths.slice().sort(function (a, b) { return a.createdAt - b.createdAt; });
+    var monthsDesc = currentMonths.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+    var defaultMonthId = state.pendingMonthSelectId || (monthsAsc.length ? monthsAsc[monthsAsc.length - 1].id : "");
+    state.pendingMonthSelectId = null;
+
+    var monthFieldHtml;
+    if (!monthsAsc.length) {
+      monthFieldHtml = '' +
+        '<label class="field-label" for="newMonthInput">Month</label>' +
+        '<p style="font-size:12.5px; color: var(--ink-faint); margin:0 0 8px;">Create a month first, then post into it \u2014 not by week.</p>' +
+        '<div class="new-month-form">' +
+          '<input class="text-input" id="newMonthInput" placeholder="e.g. September" value="' + escapeHtml(monthLabel(Date.now())) + '" />' +
+          '<button type="button" class="btn btn-primary btn-sm" id="createMonthBtn">Create month</button>' +
+        '</div>';
+    } else {
+      monthFieldHtml = '' +
+        '<label class="field-label" for="postMonthSelect">Month</label>' +
+        '<div class="month-field-row">' +
+          '<select class="text-input" id="postMonthSelect">' +
+            monthsAsc.map(function (m) {
+              return '<option value="' + m.id + '"' + (m.id === defaultMonthId ? " selected" : "") + '>' + escapeHtml(m.label) + '</option>';
+            }).join("") +
+          '</select>' +
+          '<button type="button" class="btn btn-secondary btn-sm" id="newMonthBtn">+ New month</button>' +
+        '</div>' +
+        '<div id="newMonthForm" class="hidden new-month-form">' +
+          '<input class="text-input" id="newMonthInput" placeholder="e.g. October" />' +
+          '<button type="button" class="btn btn-primary btn-sm" id="createMonthBtn">Create</button>' +
+          '<button type="button" class="btn btn-quiet btn-sm" id="cancelMonthBtn">Cancel</button>' +
+        '</div>';
+    }
+
+    var listHtml;
+    if (!currentPosts.length) {
+      listHtml = '<div class="empty-state"><h3>No posts yet</h3><p>Use the form above to publish the first item.</p></div>';
+    } else {
+      var monthGroups = monthsDesc.map(function (m) {
+        return { label: m.label, items: currentPosts.filter(function (p) { return p.monthId === m.id; }) };
+      }).filter(function (g) { return g.items.length; });
+      var currentMonthIds = {};
+      state.months.forEach(function (m) { currentMonthIds[m.id] = true; });
+      var unsorted = state.posts.filter(function (p) {
+        return !p.monthId || !currentMonthIds[p.monthId];
+      });
+      if (unsorted.length) monthGroups.push({ label: "Unsorted", items: unsorted });
+
+      listHtml = monthGroups.map(function (g) {
+        var items = g.items.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        return '' +
+        '<div class="month-group">' +
+          '<div class="month-group-label">' + escapeHtml(g.label) + '<span class="month-group-count">' + items.length + (items.length === 1 ? " post" : " posts") + '</span></div>' +
+          items.map(renderAdminPostRow).join("") +
+        '</div>';
+      }).join("");
+      if (!listHtml) listHtml = '<div class="empty-state"><h3>No posts yet</h3></div>';
+    }
+
+    return '' +
+    '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+      '<h2 class="panel-heading" style="margin:0;">Posts</h2>' +
+      (activeYear ? '<span class="current-tag">' + escapeHtml(activeYear.label) + '</span>' : '') +
+    '</div>' +
+    '<p class="panel-sub">Create a month, then add links, PDFs and articles into it for students.</p>' +
+    '<div class="card">' +
+      '<form id="postForm" class="form-grid">' +
+        '<div>' + monthFieldHtml + '</div>' +
+        '<div class="form-row-2">' +
+          '<div>' +
+            '<label class="field-label" for="postHeadline">Headline</label>' +
+            '<input class="text-input" id="postHeadline" placeholder="Write the headline" required />' +
+          '</div>' +
+          '<div>' +
+            '<label class="field-label" for="postType">Type</label>' +
+            '<select class="text-input" id="postType">' +
+              '<option value="link">Link</option>' +
+              '<option value="article">Article</option>' +
+              '<option value="pdf">PDF</option>' +
+            '</select>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<label class="field-label">Source</label>' +
+          '<div class="source-toggle" role="group" aria-label="Choose how to attach this post">' +
+            '<button type="button" class="source-btn" id="sourceLinkBtn" data-source="link" aria-pressed="true">Paste a link</button>' +
+            (state.assets ? '<button type="button" class="source-btn" id="sourceUploadBtn" data-source="upload" aria-pressed="false">Upload a file</button>' : '') +
+          '</div>' +
+          (!state.assets ? '<p style="font-size:12.5px; color: var(--ink-faint); margin:2px 0 0;">File upload isn\u2019t available right now \u2014 check your Firebase setup, or paste a link for now.</p>' : '') +
+          '<div id="linkSourceBlock">' +
+            '<label class="field-label" for="postUrl">Link or PDF URL</label>' +
+            '<input class="text-input" id="postUrl" placeholder="https://" />' +
+            '<label class="field-label" for="postDescription" style="margin-top:10px;">Summary (optional)</label>' +
+            '<input class="text-input" id="postDescription" placeholder="A short line describing the article" />' +
+          '</div>' +
+          '<div id="uploadSourceBlock" class="hidden">' +
+            '<label class="field-label">File</label>' +
+            '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+              '<button type="button" class="btn btn-secondary btn-sm" id="chooseFileBtn">Choose file</button>' +
+              '<span id="uploadStatus" style="font-size:13px; color: var(--ink-soft);">PDF, image, CSV, Markdown or text \u00b7 up to 20 MB</span>' +
+            '</div>' +
+            '<input type="file" id="postFileInput" class="hidden" accept=".pdf,.csv,.md,.txt,.json,image/*" />' +
+          '</div>' +
+          (state.assets ?
+            '<div style="margin-top:14px;">' +
+              '<label class="field-label">Cover image (optional)</label>' +
+              '<p style="font-size:12.5px; color: var(--ink-faint); margin:0 0 8px;">Shown as a picture on the post so students see what they\u2019re opening.</p>' +
+              '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+                '<button type="button" class="btn btn-secondary btn-sm" id="chooseCoverBtn">Choose image</button>' +
+                '<span id="coverStatus" style="font-size:13px; color: var(--ink-soft);">No image attached</span>' +
+              '</div>' +
+              '<input type="file" id="postCoverInput" class="hidden" accept="image/*" />' +
+            '</div>'
+          : '') +
+        '</div>' +
+        '<div>' +
+          '<label class="field-label" for="postComment">Note for students (optional)</label>' +
+          '<textarea class="text-input" id="postComment" placeholder="Add context or a talking point for this post"></textarea>' +
+        '</div>' +
+        '<div><button type="submit" class="btn btn-primary"' + (!monthsAsc.length ? " disabled" : "") + '>Publish post</button></div>' +
+      '</form>' +
+    '</div>' +
+    '<h3 style="margin:26px 0 12px; font-size:16px; font-weight:500; color: var(--ink-soft);">Posts by month' + (activeYear ? ' \u00b7 ' + escapeHtml(activeYear.label) : '') + '</h3>' +
+    listHtml;
+  }
+
+  function renderAdminPostRow(post) {
+    var badge = TYPE_LABELS[post.type] || "Link";
+    var thumbHtml = post.coverImageUrl ?
+      '<img class="admin-post-thumb" src="' + escapeHtml(post.coverImageUrl) + '" alt="" loading="lazy" />' : "";
+    return '' +
+    '<div class="admin-post-row" data-post-id="' + post.id + '">' +
+      '<div class="admin-post-top">' +
+        '<div style="display:flex; gap:12px; min-width:0;">' +
+          thumbHtml +
+          '<div>' +
+            '<div class="admin-post-headline">' + escapeHtml(post.headline) + '</div>' +
+            '<div class="admin-post-meta">' + badge + ' \u00b7 ' + formatDateTime(post.createdAt) + (post.fileName ? ' \u00b7 ' + escapeHtml(post.fileName) : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button type="button" class="btn btn-danger btn-sm delete-post-btn" data-post-id="' + post.id + '">Delete</button>' +
+      '</div>' +
+      '<div class="admin-comment-block">' +
+        '<label class="field-label">Comment on this post</label>' +
+        '<textarea class="text-input comment-input" data-post-id="' + post.id + '" placeholder="Add a note for students">' + escapeHtml(post.comment) + '</textarea>' +
+        '<div class="comment-save-row"><button type="button" class="btn btn-secondary btn-sm save-comment-btn" data-post-id="' + post.id + '">Save note</button></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderCodePanel() {
+    return '' +
+    '<h2 class="panel-heading">Weekly student code</h2>' +
+    '<p class="panel-sub">Set the access code students use to sign in this week. The admin code is fixed and never changes.</p>' +
+    '<div class="card">' +
+      '<div class="field-label">Current student code</div>' +
+      '<div class="code-display">' + escapeHtml(state.studentCode) + '</div>' +
+      '<div class="code-updated">' + (state.codeUpdatedAt ? "Last updated " + formatDateTime(state.codeUpdatedAt) : "Using the default starting code") + '</div>' +
+      '<form id="codeForm" class="form-grid" style="max-width:320px;">' +
+        '<div>' +
+          '<label class="field-label" for="newCodeInput">New code for this week</label>' +
+          '<input class="text-input" id="newCodeInput" placeholder="e.g. 482913" autocomplete="off" />' +
+        '</div>' +
+        '<div><button type="submit" class="btn btn-primary">Save new code</button></div>' +
+      '</form>' +
+    '</div>';
+  }
+
+  function renderSchoolYearPanel() {
+    var activeYear = getActiveYear();
+    var currentMonths = getCurrentMonths().sort(function (a, b) { return b.createdAt - a.createdAt; });
+    var currentPosts = getCurrentPosts();
+    var maxCount = 0;
+    var rows = currentMonths.map(function (m) {
+      var count = currentPosts.filter(function (p) { return p.monthId === m.id; }).length;
+      if (count > maxCount) maxCount = count;
+      return { label: m.label, count: count };
+    });
+    var barsHtml = rows.length ? rows.map(function (r) {
+      var pct = maxCount ? Math.round((r.count / maxCount) * 100) : 0;
+      return '' +
+      '<div class="bar-row">' +
+        '<div><div class="bar-title">' + escapeHtml(r.label) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div></div>' +
+        '<div class="bar-count">' + r.count + (r.count === 1 ? " post" : " posts") + '</div>' +
+      '</div>';
+    }).join("") : '<p style="color: var(--ink-soft); font-size: 13.5px;">No months created yet.</p>';
+
+    var archivedYears = state.years.filter(function (y) { return y.archivedAt; })
+      .sort(function (a, b) { return b.archivedAt - a.archivedAt; });
+    var archiveHtml = archivedYears.length ?
+      archivedYears.map(renderArchiveYearCard).join("") :
+      '<p style="color: var(--ink-soft); font-size: 13.5px;">No previous years yet. They\u2019ll appear here once you start a new school year.</p>';
+
+    return '' +
+    '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">' +
+      '<h2 class="panel-heading" style="margin:0;">School year</h2>' +
+      (activeYear ? '<span class="current-tag">' + escapeHtml(activeYear.label) + '</span>' : '') +
+    '</div>' +
+    '<p class="panel-sub">' + (activeYear ? "Currently on " + escapeHtml(activeYear.label) + "." : "No school year started yet \u2014 create a month to begin one.") + '</p>' +
+    '<div class="stat-grid">' +
+      '<div class="stat-box"><div class="stat-value">' + currentMonths.length + '</div><div class="stat-label">Months this year</div></div>' +
+      '<div class="stat-box"><div class="stat-value">' + currentPosts.length + '</div><div class="stat-label">Posts this year</div></div>' +
+    '</div>' +
+    '<h3 style="margin:0 0 10px; font-size:16px; font-weight:500; color: var(--ink-soft);">Posts per month</h3>' +
+    '<div class="card">' + barsHtml + '</div>' +
+
+    '<h3 style="margin:26px 0 10px; font-size:16px; font-weight:500; color: var(--ink-soft);">Start a new school year</h3>' +
+    '<div class="card">' +
+      '<p style="margin:0 0 14px; font-size:13.5px; color: var(--ink-soft);">This moves everything above into the archive below and gives students a clean slate for the new year. Nothing is deleted \u2014 you can browse it anytime in Previous years. Login codes and login/click analytics stay as they are.</p>' +
+      '<label class="field-label" for="newYearInput">Name for the new year</label>' +
+      '<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">' +
+        '<input class="text-input" id="newYearInput" placeholder="e.g. 2027\u20132028" value="' + escapeHtml(nextYearLabel(activeYear ? activeYear.label : null)) + '" style="max-width:220px;" />' +
+        '<button type="button" class="btn btn-primary" id="startYearBtn"' + (state.yearWipeLoading ? " disabled" : "") + '>' + (state.yearWipeLoading ? "Starting\u2026" : "Start new school year") + '</button>' +
+      '</div>' +
+      '<div id="startYearConfirm" class="hidden confirm-row">' +
+        '<p class="confirm-text">This moves everything above into the archive and gives students a clean slate. Continue?</p>' +
+        '<div style="display:flex; gap:8px;">' +
+          '<button type="button" class="btn btn-danger btn-sm" id="startYearConfirmBtn">Yes, start new year</button>' +
+          '<button type="button" class="btn btn-quiet btn-sm" id="startYearCancelBtn">Cancel</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<h3 style="margin:26px 0 10px; font-size:16px; font-weight:500; color: var(--ink-soft);">Previous years</h3>' +
+    archiveHtml;
+  }
+
+  function renderArchiveYearCard(year) {
+    var isOpen = state.expandedYearId === year.id;
+    var yearMonths = state.months.filter(function (m) { return m.yearId === year.id; })
+      .sort(function (a, b) { return a.createdAt - b.createdAt; });
+    var yearMonthIds = {};
+    yearMonths.forEach(function (m) { yearMonthIds[m.id] = true; });
+    var yearPosts = state.posts.filter(function (p) { return yearMonthIds[p.monthId]; });
+
+    var bodyHtml = "";
+    if (isOpen) {
+      bodyHtml = yearMonths.length ? yearMonths.map(function (m) {
+        var mPosts = yearPosts.filter(function (p) { return p.monthId === m.id; })
+          .sort(function (a, b) { return a.createdAt - b.createdAt; });
+        var monthOpen = state.expandedMonthId === m.id;
+        return '' +
+        '<div class="archive-month">' +
+          '<button type="button" class="archive-month-toggle" data-month-id="' + m.id + '" data-year-id="' + year.id + '">' +
+            '<span>' + escapeHtml(m.label) + '</span>' +
+            '<span class="archive-month-count">' + mPosts.length + (mPosts.length === 1 ? " post" : " posts") + '</span>' +
+          '</button>' +
+          (monthOpen ? '<div class="archive-post-list">' + (mPosts.length ? mPosts.map(renderArchivePostRow).join("") : '<p style="font-size:12.5px; color: var(--ink-faint); margin:8px 0;">No posts in this month.</p>') + '</div>' : '') +
+        '</div>';
+      }).join("") : '<p style="font-size:13px; color: var(--ink-faint); padding:14px 0 0;">No months in this year.</p>';
+    }
+
+    return '' +
+    '<div class="card year-card">' +
+      '<div class="year-card-header">' +
+        '<div>' +
+          '<div class="year-card-label">' + escapeHtml(year.label) + '</div>' +
+          '<div class="year-card-meta">Archived ' + formatDateTime(year.archivedAt) + ' \u00b7 ' + yearMonths.length + (yearMonths.length === 1 ? " month" : " months") + ' \u00b7 ' + yearPosts.length + (yearPosts.length === 1 ? " post" : " posts") + '</div>' +
+        '</div>' +
+        '<div class="year-card-actions">' +
+          '<button type="button" class="btn btn-secondary btn-sm restore-year-btn" data-year-id="' + year.id + '">Restore</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm archive-year-toggle" data-year-id="' + year.id + '">' + (isOpen ? "Hide" : "View") + '</button>' +
+        '</div>' +
+      '</div>' +
+      (isOpen ? '<div class="year-card-body">' + bodyHtml + '</div>' : '') +
+    '</div>';
+  }
+
+  function renderArchivePostRow(post) {
+    var badge = TYPE_LABELS[post.type] || "Link";
+    return '' +
+    '<div class="archive-post-row">' +
+      '<span class="type-badge">' + badge + '</span>' +
+      '<a href="' + escapeHtml(post.url || "#") + '" target="_blank" rel="noopener noreferrer" class="archive-post-link">' + escapeHtml(post.headline) + '</a>' +
+      '<span class="archive-post-date">' + formatDateTime(post.createdAt) + '</span>' +
+    '</div>';
+  }
+
+  function renderAnalyticsPanel() {
+    if (!state.analytics && !state.analyticsLoading) {
+      // trigger load
+      window.setTimeout(loadAnalytics, 0);
+    }
+    if (state.analyticsLoading || !state.analytics) {
+      return '<h2 class="panel-heading">Analytics</h2><p class="panel-sub">Crunching the numbers\u2026</p>';
+    }
+    var a = state.analytics;
+    var maxClicks = a.clicks.length ? a.clicks[0].count : 0;
+
+    var clicksHtml = a.clicks.length ? a.clicks.map(function (c) {
+      var pct = maxClicks ? Math.round((c.count / maxClicks) * 100) : 0;
+      return '' +
+      '<div class="bar-row">' +
+        '<div><div class="bar-title">' + escapeHtml(c.headline) + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div></div>' +
+        '<div class="bar-count">' + c.count + '</div>' +
+      '</div>';
+    }).join("") : '<p style="color: var(--ink-soft); font-size: 13.5px;">No clicks recorded yet.</p>';
+
+    var maxEngagement = 0;
+    a.years.forEach(function (r) {
+      var total = r.logins + r.clicks;
+      if (total > maxEngagement) maxEngagement = total;
+    });
+    var yearsHtml = a.years.length ? a.years.map(function (r) {
+      var total = r.logins + r.clicks;
+      var pct = maxEngagement ? Math.round((total / maxEngagement) * 100) : 0;
+      return '' +
+      '<div class="bar-row">' +
+        '<div><div class="bar-title">' + escapeHtml(r.label) + (r.archived ? '' : ' <span class="current-tag">Current</span>') + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;"></div></div></div>' +
+        '<div class="bar-count">' + r.logins + ' logins \u00b7 ' + r.clicks + ' clicks</div>' +
+      '</div>';
+    }).join("") : '<p style="color: var(--ink-soft); font-size: 13.5px;">No school years yet.</p>';
+
+    return '' +
+    '<h2 class="panel-heading">Analytics</h2>' +
+    '<p class="panel-sub">Logins and engagement over time, updated when you open this tab.</p>' +
+    '<div class="stat-grid">' +
+      '<div class="stat-box"><div class="stat-value">' + a.logins.total + '</div><div class="stat-label">Total logins</div></div>' +
+      '<div class="stat-box"><div class="stat-value">' + a.logins.student + '</div><div class="stat-label">Student logins</div></div>' +
+      '<div class="stat-box"><div class="stat-value">' + a.logins.admin + '</div><div class="stat-label">Admin logins</div></div>' +
+    '</div>' +
+    '<h3 style="margin:0 0 10px; font-size:16px; font-weight:500; color: var(--ink-soft);">By school year</h3>' +
+    '<div class="card">' + yearsHtml + '</div>' +
+    '<h3 style="margin:26px 0 10px; font-size:16px; font-weight:500; color: var(--ink-soft);">Clicks per post</h3>' +
+    '<div class="card">' + clicksHtml + '</div>' +
+    '<div style="margin-top:14px;"><button type="button" class="btn btn-secondary btn-sm" id="refreshAnalyticsBtn">Refresh</button></div>';
+  }
+
+  function bindAdminShell() {
+    var logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".admin-nav-btn"), function (btn) {
+      btn.addEventListener("click", function () {
+        state.adminTab = btn.getAttribute("data-tab");
+        if (state.adminTab === "analytics") state.analytics = null;
+        render();
+      });
+    });
+
+    var postForm = document.getElementById("postForm");
+    if (postForm) {
+      var sourceMode = "link";
+      var pendingUpload = null; // {id, url, name}
+      var linkBtn = document.getElementById("sourceLinkBtn");
+      var uploadBtn = document.getElementById("sourceUploadBtn");
+      var linkBlock = document.getElementById("linkSourceBlock");
+      var uploadBlock = document.getElementById("uploadSourceBlock");
+      var fileInput = document.getElementById("postFileInput");
+      var chooseFileBtn = document.getElementById("chooseFileBtn");
+      var uploadStatus = document.getElementById("uploadStatus");
+      var chooseCoverBtn = document.getElementById("chooseCoverBtn");
+      var coverInput = document.getElementById("postCoverInput");
+      var coverStatus = document.getElementById("coverStatus");
+      var pendingCover = null; // {id, url, name}
+
+      var monthSelectEl = document.getElementById("postMonthSelect");
+      var newMonthBtn = document.getElementById("newMonthBtn");
+      var newMonthForm = document.getElementById("newMonthForm");
+      var cancelMonthBtn = document.getElementById("cancelMonthBtn");
+      var createMonthBtn = document.getElementById("createMonthBtn");
+
+      if (newMonthBtn && newMonthForm) {
+        newMonthBtn.addEventListener("click", function () {
+          newMonthForm.classList.remove("hidden");
+          newMonthBtn.classList.add("hidden");
+          var inp = document.getElementById("newMonthInput");
+          if (inp) inp.focus();
+        });
+      }
+      if (cancelMonthBtn && newMonthForm) {
+        cancelMonthBtn.addEventListener("click", function () {
+          newMonthForm.classList.add("hidden");
+          if (newMonthBtn) newMonthBtn.classList.remove("hidden");
+        });
+      }
+      if (createMonthBtn) {
+        createMonthBtn.addEventListener("click", async function () {
+          var inp = document.getElementById("newMonthInput");
+          var label = inp ? inp.value.trim() : "";
+          if (!label) { showToast("Give the month a name first."); return; }
+          createMonthBtn.disabled = true;
+          var newId = await createMonth(label);
+          createMonthBtn.disabled = false;
+          if (newId) {
+            state.pendingMonthSelectId = newId;
+            render();
+          }
+        });
+      }
+
+      function setSourceMode(mode) {
+        sourceMode = mode;
+        if (linkBtn) linkBtn.setAttribute("aria-pressed", String(mode === "link"));
+        if (uploadBtn) uploadBtn.setAttribute("aria-pressed", String(mode === "upload"));
+        if (linkBlock) linkBlock.classList.toggle("hidden", mode !== "link");
+        if (uploadBlock) uploadBlock.classList.toggle("hidden", mode !== "upload");
+      }
+
+      if (linkBtn) linkBtn.addEventListener("click", function () { setSourceMode("link"); });
+      if (uploadBtn) uploadBtn.addEventListener("click", function () { setSourceMode("upload"); });
+
+      if (chooseFileBtn && fileInput) {
+        chooseFileBtn.addEventListener("click", function () { fileInput.click(); });
+        fileInput.addEventListener("change", async function () {
+          var file = fileInput.files && fileInput.files[0];
+          if (!file) return;
+          if (!state.assets) { showToast("File upload isn't available for this view."); return; }
+          uploadStatus.textContent = "Uploading " + file.name + "\u2026";
+          chooseFileBtn.disabled = true;
+          try {
+            var forcedType = null;
+            var lowerName = file.name.toLowerCase();
+            if (lowerName.endsWith(".csv")) forcedType = "text/csv";
+            else if (lowerName.endsWith(".md")) forcedType = "text/markdown";
+            else if (lowerName.endsWith(".json")) forcedType = "application/json";
+            else if (lowerName.endsWith(".txt")) forcedType = "text/plain";
+            var result = await state.assets.upload(file, forcedType ? { type: forcedType } : undefined);
+            pendingUpload = { id: result.id, url: result.url, name: file.name };
+            uploadStatus.innerHTML = "";
+            var span = document.createElement("span");
+            span.className = "file-attached";
+            span.textContent = "Attached: " + file.name + " ";
+            var removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.textContent = "Remove";
+            removeBtn.addEventListener("click", function () {
+              pendingUpload = null;
+              fileInput.value = "";
+              uploadStatus.textContent = "PDF, image, CSV, Markdown or text \u00b7 up to 20 MB";
+            });
+            span.appendChild(removeBtn);
+            uploadStatus.appendChild(span);
+          } catch (err) {
+            var code = err && err.code;
+            var msg = "Couldn't upload that file. Try again.";
+            if (code === "too_large") msg = "That file is too big (20 MB limit, 2 MB for SVGs).";
+            if (code === "unsupported_type") msg = "That file type isn't supported here. Try a PDF, image, CSV, Markdown or text file.";
+            showToast(msg);
+            uploadStatus.textContent = "PDF, image, CSV, Markdown or text \u00b7 up to 20 MB";
+          }
+          chooseFileBtn.disabled = false;
+        });
+      }
+
+      if (chooseCoverBtn && coverInput) {
+        chooseCoverBtn.addEventListener("click", function () { coverInput.click(); });
+        coverInput.addEventListener("change", async function () {
+          var file = coverInput.files && coverInput.files[0];
+          if (!file) return;
+          if (!state.assets) { showToast("Cover images aren't available for this view."); return; }
+          coverStatus.textContent = "Uploading\u2026";
+          chooseCoverBtn.disabled = true;
+          try {
+            var result = await state.assets.upload(file);
+            pendingCover = { id: result.id, url: result.url, name: file.name };
+            coverStatus.innerHTML = "";
+            var span = document.createElement("span");
+            span.className = "file-attached";
+            span.textContent = "Attached: " + file.name + " ";
+            var removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.textContent = "Remove";
+            removeBtn.addEventListener("click", function () {
+              pendingCover = null;
+              coverInput.value = "";
+              coverStatus.textContent = "No image attached";
+            });
+            span.appendChild(removeBtn);
+            coverStatus.appendChild(span);
+          } catch (err) {
+            var code = err && err.code;
+            var msg = "Couldn't upload that image. Try again.";
+            if (code === "too_large") msg = "That image is too big.";
+            if (code === "unsupported_type") msg = "That file isn't a supported image type.";
+            showToast(msg);
+            coverStatus.textContent = "No image attached";
+          }
+          chooseCoverBtn.disabled = false;
+        });
+      }
+
+      postForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var headline = document.getElementById("postHeadline").value.trim();
+        var type = document.getElementById("postType").value;
+        var comment = document.getElementById("postComment").value.trim();
+        var url = "";
+        var fileName = "";
+        var description = document.getElementById("postDescription") ? document.getElementById("postDescription").value.trim() : "";
+
+        if (sourceMode === "upload") {
+          if (!pendingUpload) { showToast("Choose a file to attach first."); return; }
+          url = pendingUpload.url;
+          fileName = pendingUpload.name;
+        } else {
+          url = document.getElementById("postUrl").value.trim();
+          if (!url) { showToast("Paste a link first."); return; }
+        }
+        if (!headline) { showToast("Give the post a headline first."); return; }
+
+        var monthId = monthSelectEl ? monthSelectEl.value : "";
+        if (!monthId) { showToast("Create or choose a month first."); return; }
+
+        var submitBtn = postForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        await addPost({ headline: headline, type: type, url: url, fileName: fileName, coverImageUrl: pendingCover ? pendingCover.url : "", description: description, comment: comment, monthId: monthId });
+        submitBtn.disabled = false;
+        render();
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".delete-post-btn"), function (btn) {
+      var originalText = btn.textContent;
+      btn.addEventListener("click", async function () {
+        if (btn.getAttribute("data-armed") === "true") {
+          window.clearTimeout(btn._armTimeout);
+          btn.disabled = true;
+          var id = btn.getAttribute("data-post-id");
+          await deletePost(id);
+          render();
+          return;
+        }
+        btn.setAttribute("data-armed", "true");
+        btn.textContent = "Confirm delete?";
+        window.clearTimeout(btn._armTimeout);
+        btn._armTimeout = window.setTimeout(function () {
+          btn.setAttribute("data-armed", "false");
+          btn.textContent = originalText;
+        }, 4000);
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".save-comment-btn"), function (btn) {
+      btn.addEventListener("click", async function () {
+        var id = btn.getAttribute("data-post-id");
+        var textarea = document.querySelector('.comment-input[data-post-id="' + id + '"]');
+        await saveComment(id, textarea.value.trim());
+      });
+    });
+
+    var codeForm = document.getElementById("codeForm");
+    if (codeForm) {
+      codeForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var input = document.getElementById("newCodeInput");
+        await saveStudentCode(input.value);
+        input.value = "";
+      });
+    }
+
+    var refreshBtn = document.getElementById("refreshAnalyticsBtn");
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", function () {
+        state.analytics = null;
+        render();
+      });
+    }
+
+    var newYearInput = document.getElementById("newYearInput");
+    var startYearBtn = document.getElementById("startYearBtn");
+    var startYearConfirm = document.getElementById("startYearConfirm");
+    var startYearConfirmBtn = document.getElementById("startYearConfirmBtn");
+    var startYearCancelBtn = document.getElementById("startYearCancelBtn");
+
+    if (startYearBtn && startYearConfirm) {
+      startYearBtn.addEventListener("click", function () {
+        startYearConfirm.classList.remove("hidden");
+        startYearBtn.classList.add("hidden");
+      });
+    }
+    if (startYearCancelBtn && startYearConfirm) {
+      startYearCancelBtn.addEventListener("click", function () {
+        startYearConfirm.classList.add("hidden");
+        if (startYearBtn) startYearBtn.classList.remove("hidden");
+      });
+    }
+    if (startYearConfirmBtn) {
+      startYearConfirmBtn.addEventListener("click", async function () {
+        var label = newYearInput ? newYearInput.value.trim() : "";
+        startYearConfirmBtn.disabled = true;
+        await startNewSchoolYear(label);
+        startYearConfirmBtn.disabled = false;
+      });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".archive-year-toggle"), function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-year-id");
+        state.expandedYearId = state.expandedYearId === id ? null : id;
+        state.expandedMonthId = null;
+        render();
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".restore-year-btn"), function (btn) {
+      var originalText = btn.textContent;
+      btn.addEventListener("click", async function () {
+        if (btn.getAttribute("data-armed") === "true") {
+          window.clearTimeout(btn._armTimeout);
+          btn.disabled = true;
+          var id = btn.getAttribute("data-year-id");
+          await restoreYear(id);
+          return;
+        }
+        btn.setAttribute("data-armed", "true");
+        btn.textContent = "Confirm restore?";
+        window.clearTimeout(btn._armTimeout);
+        btn._armTimeout = window.setTimeout(function () {
+          btn.setAttribute("data-armed", "false");
+          btn.textContent = originalText;
+        }, 4000);
+      });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".archive-month-toggle"), function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-month-id");
+        state.expandedMonthId = state.expandedMonthId === id ? null : id;
+        render();
+      });
+    });
+  }
+
+  /* ---------------- boot ---------------- */
+  initDb();
+})();
+</script>
+</body>
+</html>
